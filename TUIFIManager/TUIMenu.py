@@ -44,14 +44,14 @@ class TUIMenu:
             
 
     def create(self, atY=None, atX=None):
-        if atX is not None: self.x = atX 
+        if atX is not None: self.x = atX
         if atY is not None: self.y = atY   
-        
+
         parent_width  = unicurses.getmaxx(self.parent)
         parent_height = unicurses.getmaxy(self.parent)
         if self.x + self.width  > parent_width : self.x -= self.width
         if self.y + self.height > parent_height: self.y -= self.height 
-             
+
         if self.exists:
             unicurses.delwin(self.pad)
 
@@ -60,12 +60,12 @@ class TUIMenu:
         i = 1
         unicurses.mvwaddwstr(self.pad,0,0,'╭' + ('‒'*(self.width-2)) + '╮')
         for item in self.items:
-            unicurses.mvwaddwstr(self.pad,i,0,'│ ' + item, unicurses.A_BOLD)
+            unicurses.mvwaddwstr(self.pad, i, 0, f'│ {item}', unicurses.A_BOLD)
             unicurses.mvwaddwstr(self.pad,i,self.width-1,'│',unicurses.A_BOLD)
             unicurses.mvwaddwstr(self.pad,i+1,0,'├' + ('‒'*(self.width-2)) + '┤')
             i+=2
         unicurses.mvwaddwstr(self.pad,i-1,0,'╰' + ('‒'*(self.width-2)) + '╯')
-        
+
         self.exists = True
         self.refresh()
         
@@ -94,7 +94,7 @@ class TUIMenu:
     __it = -1
     def handle_keyboard_events(self, event): 
         performed = False
-        if self.exists and not event == self.events.get('KEY_MOUSE'):
+        if self.exists and event != self.events.get('KEY_MOUSE'):
             if event == self.events.get('KEY_DOWN'):
                 performed=True
                 if self.__it == len(self.items) -1:

@@ -18,8 +18,14 @@ class TUIFIProfile: #█┇▓┃▒┃░┃
 
 
 
-DEFAULT_OPENER = 'start' if 'Windows' == OPERATING_SYSTEM else 'open' if 'Darwin' == OPERATING_SYSTEM  else 'xdg-open'   # meh.. # TODO: make an enviromental variable insted of those 2 vars, for everything
-DEFAULT_EDITOR = which(getenv('tuifi_default_editor', getenv('EDITOR', 'nvim'))) or which('emacs') or which('vim') or which('micro') or which('nano')  or which('vi') or DEFAULT_OPENER 
+DEFAULT_OPENER = (
+    'start'
+    if OPERATING_SYSTEM == 'Windows'
+    else 'open'
+    if OPERATING_SYSTEM == 'Darwin'
+    else 'xdg-open'
+)
+DEFAULT_EDITOR = which(getenv('tuifi_default_editor', getenv('EDITOR', 'nvim'))) or which('emacs') or which('vim') or which('micro') or which('nano')  or which('vi') or DEFAULT_OPENER
 DEFAULT_WITH   = DEFAULT_EDITOR
 
 TUIFIProfiles = { # TODO: ADD gitignore and etc. icons | TODO: open zip rar and etc. files on __init__.py as if they where kind of folders?
@@ -304,7 +310,7 @@ TUIFIProfiles = { # TODO: ADD gitignore and etc. icons | TODO: open zip rar and 
         ' ▓▓▓░░▓▓▓ \n' 
         ' ZST░░▀▀▀ '
     ),2, DEFAULT_OPENER),
-    
+
 
     '/gif':TUIFIProfile((
         ' ┏━━━┳┳┳┓ \n'
@@ -458,7 +464,7 @@ TUIFIProfiles = { # TODO: ADD gitignore and etc. icons | TODO: open zip rar and 
         ' ┣┓░▃┏▓▆┇ \n'
         ' ╰━━━━━━┛ '
     ),2, DEFAULT_OPENER),
-    
+
 
     '/m4a':TUIFIProfile((  # 8 = Aqua, just like the waves 
         ' ┏━━━━━━╮ \n'
@@ -581,6 +587,6 @@ TUIFIProfiles = { # TODO: ADD gitignore and etc. icons | TODO: open zip rar and 
         '⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⠀⠀⠀⠀⠁⠀⠀⠀'
     ),8)
 }
-DEFAULT_PROFILE   = TUIFIProfiles[':file'] 
+DEFAULT_PROFILE   = TUIFIProfiles[':file']
 LINK_SYMBOL       = '↩'  # Potential:⤶ ⤾ ↲ ⎌ ☍ ⧉ 
 LINK_SYMBOL_COLOR = 1

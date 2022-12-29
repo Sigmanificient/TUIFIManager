@@ -15,18 +15,18 @@ class TUIFile:
         counter2 = 0
         counter1 = 0
         tempTxT  = ''
-        for i in range(0,len(text)):
+        for i in range(len(text)):
             counter1 += 1
             tempTxT += text[i]
             if counter1 == n:
                 counter2 += 1
                 tempTxT  += '\n'
                 counter1  = 0
-            
+
         if tempTxT.endswith('\n'):
             counter2 -= 1
-            tempTxT   = tempTxT[0:-1]
-            
+            tempTxT = tempTxT[:-1]
+
         self.name_height = counter2 + 1
         return tempTxT    
     
@@ -39,7 +39,7 @@ class TUIFile:
         self.x           = x
         self.name        = name
         self.is_link     = is_link
-        self.is_hidden   = True if name.startswith('.') else False
+        self.is_hidden = bool(name.startswith('.'))
         self.chunkStr(name, self.profile.width)
 
 
@@ -47,13 +47,13 @@ class TUIFile:
         pass
     
     
-    def draw_name(self, atpad, name, prename, chgatXY, attr=unicurses.A_NORMAL, color_pair_offset=0):  # fuck, lol
+    def draw_name(self, atpad, name, prename, chgatXY, attr=unicurses.A_NORMAL, color_pair_offset=0):    # fuck, lol
         """
         DON'T USE IT
         """
         y = chgatXY // self.profile.width
         x = chgatXY - y * (self.profile.width)
-        for offY, ln in enumerate(self.chunkStr(prename + ' ',self.profile.width).split('\n'), self.profile.height):
+        for offY, ln in enumerate(self.chunkStr(f'{prename} ', self.profile.width).split('\n'), self.profile.height):
             unicurses.mvwaddwstr(atpad,offY + self.y,self.x, ' ' * len(ln)) # A_BOLD | 
         for offY, ln in enumerate(self.chunkStr(name,self.profile.width).split('\n'), self.profile.height):
             unicurses.mvwaddwstr(atpad,offY + self.y,self.x, ln, unicurses.COLOR_PAIR(self.name_color + color_pair_offset) | attr) # A_BOLD | 
