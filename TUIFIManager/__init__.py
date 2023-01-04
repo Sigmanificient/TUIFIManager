@@ -41,13 +41,31 @@ def stty_a(key=None):  # whatever [...]
     if not STTY_EXISTS:
         return None
 
-    if not key:
-        return [s.strip() for s in subprocess.Popen("stty -a", shell=True, stdout=subprocess.PIPE).stdout.read().decode().split(';')[4:-3]] # risky? i've no idea.. thats why i've not done the same when "if key:"
-
-    for sig in subprocess.Popen("stty -a", shell=True, stdout=subprocess.PIPE).stdout.read().decode().split(';'):
-        if sig.endswith(key):
-            return sig.split('=')[0].strip()
-    return None
+    return (
+        next(
+            (
+                sig.split('=')[0].strip()
+                for sig in subprocess.Popen(
+                    "stty -a", shell=True, stdout=subprocess.PIPE
+                )
+                .stdout.read()
+                .decode()
+                .split(';')
+                if sig.endswith(key)
+            ),
+            None,
+        )
+        if key
+        else [
+            s.strip()
+            for s in subprocess.Popen(
+                "stty -a", shell=True, stdout=subprocess.PIPE
+            )
+            .stdout.read()
+            .decode()
+            .split(';')[4:-3]
+        ]
+    )
 
 
 
@@ -307,17 +325,17 @@ class TUIFIManager(Component):  # TODO: I need to create a TUIWindowManager clas
         if not relative_to_pad:
             y += self.position.iy - self.y
             x -= self.x
-        for i, f in enumerate(self.files):
-            if x >= f.x and x < (f.x + f.profile.width) and y >= f.y and y < (f.y + f.profile.height + f.name_height ):  # y <= because name_height
-                if not return_enumerator:
-                    return f
-                else:
-                    return i, f  # lol "if" with a comma
-
-        if not return_enumerator:
-            return None
-        else:
-            return None, None
+        return next(
+            (
+                (i, f) if return_enumerator else f
+                for i, f in enumerate(self.files)
+                if x >= f.x
+                and x < (f.x + f.profile.width)
+                and y >= f.y
+                and y < (f.y + f.profile.height + f.name_height)
+            ),
+            (None, None) if return_enumerator else None,
+        )
 
 
     def deselect(self,tuifile=None):
@@ -720,8 +738,8 @@ class TUIFIManager(Component):  # TODO: I need to create a TUIWindowManager clas
 
     def __set_label_on_file_selection(self, index=None, file=None):
         if not self.info_label: return
-        file = file if file else self.__clicked_file
-        index= index if index else self.__index_of_clicked_file
+        file = file or self.__clicked_file
+        index = index or self.__index_of_clicked_file
         path = self.directory + sep + file.name
         info = f'[{os.path.getsize(path)} bytes]' if os.path.isfile(path) else ''
         offset = self.__int_len(max(len(self.files),999)) + 3 + self.__int_len(index) + 3 + len(info) + 2
@@ -745,8 +763,8 @@ class TUIFIManager(Component):  # TODO: I need to create a TUIWindowManager clas
     }
     def __perform_menu_selected_action(self, action):
         if not action : return False
-        action_func = self.__menu_select_actions.get(action)
-        if action_func: action_func(self) # don't change this, it has to return true even if no action_func() performed else it doesn't overide the events
+        if action_func := self.__menu_select_actions.get(action):
+            action_func(self) # don't change this, it has to return true even if no action_func() performed else it doesn't overide the events
         return True
 
 
@@ -793,7 +811,7 @@ class TUIFIManager(Component):  # TODO: I need to create a TUIWindowManager clas
         if self.__perform_menu_selected_action(self.menu.handle_mouse_events(id, x, y, z, bstate)): return True
         if self.__x != x or self.__y != y: self.hover_mode = True #hover mode
 
-        if   not self.hover_mode and (bstate & unicurses.BUTTON4_PRESSED): self.scroll_pad(UP  )
+        if not self.hover_mode and (bstate & unicurses.BUTTON4_PRESSED): self.scroll_pad(UP  )
         elif not self.hover_mode and (bstate & unicurses.BUTTON5_PRESSED): self.scroll_pad(DOWN)
         elif not IS_TERMUX or not self.termux_touch_only: # because there are some times that long like presses might be translated to BUTTON1_PRESSED instead of CLICK
             self.__handle_hover_mode(y,x)
@@ -810,11 +828,19 @@ class TUIFIManager(Component):  # TODO: I need to create a TUIWindowManager clas
                         self.deselect()
                     if bstate & unicurses.BUTTON3_RELEASED:
                         self.menu.create(y,x)
-                    if self.__mouse_btn1_pressed_file and not self.__mouse_btn1_pressed_file.name == '..' and not self.__mouse_btn1_pressed_file.is_selected :
+                    if (
+                        self.__mouse_btn1_pressed_file
+                        and self.__mouse_btn1_pressed_file.name != '..'
+                        and not self.__mouse_btn1_pressed_file.is_selected
+                    ):
                         self.select(self.__mouse_btn1_pressed_file )
                     if (((sumed_time < self.double_click_DELAY) and (bstate & unicurses.BUTTON1_RELEASED)) or bstate & unicurses.BUTTON1_DOUBLE_CLICKED) and self.__clicked_file: #and count == 2  :
                         self.open(self.__clicked_file)
-                elif self.__clicked_file and self.__mouse_btn1_pressed_file and not self.__mouse_btn1_pressed_file == self.__clicked_file: #and not self.__clicked_file.is_selected:
+                elif (
+                    self.__clicked_file
+                    and self.__mouse_btn1_pressed_file
+                    and self.__mouse_btn1_pressed_file != self.__clicked_file
+                ): #and not self.__clicked_file.is_selected:
                     if os.path.isdir(self.directory + sep + self.__clicked_file.name):
                         for f in self.files:
                             if f.is_selected:
@@ -967,7 +993,7 @@ class TUIFIManager(Component):  # TODO: I need to create a TUIWindowManager clas
             self.select(self.__clicked_file)
 
     def __handle_alt_down(self, event):
-        if 'kDN3' != unicurses.keyname(event): return False
+        if unicurses.keyname(event) != 'kDN3': return False
         if self.menu.exists: self.menu.delete()
         else               : self.menu.create(self.__clicked_file.y,self.__clicked_file.x +1)
         return True
